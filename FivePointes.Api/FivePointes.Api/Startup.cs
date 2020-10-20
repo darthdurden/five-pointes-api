@@ -55,8 +55,15 @@ namespace FivePointes.Api
                 options.AddPolicy(name: "LAMC",
                                   builder =>
                                   {
-                                      builder.WithOrigins("https://finances.lookatmycode.com",
-                                                          "https://csva.lookatmycode.com");
+                                      builder.WithOrigins("https://finances.lookatmycode.com");
+                                      builder.AllowAnyMethod();
+                                      builder.AllowAnyHeader();
+                                  });
+
+                options.AddPolicy(name: "CSVA",
+                                  builder =>
+                                  {
+                                      builder.WithOrigins("https://admin.carolynscottva.com");
                                       builder.AllowAnyMethod();
                                       builder.AllowAnyHeader();
                                   });
@@ -177,6 +184,7 @@ namespace FivePointes.Api
 
             app.UseCors("Local");
             app.UseCors("LAMC");
+            app.UseCors("CSVA");
 
             app.UseRouting();
 

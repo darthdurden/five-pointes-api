@@ -4,6 +4,7 @@ using FivePointes.Common;
 using FivePointes.Logic.Models;
 using FivePointes.Logic.Models.Filters;
 using FivePointes.Logic.Ports;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NodaTime;
 using System;
@@ -55,6 +56,7 @@ namespace FivePointes.Api.Controllers.CSVA
 
         [HttpGet]
         [ProducesResponseType(200)]
+        [AllowAnonymous]
         public async Task<ActionResult<List<TimeOffEntryDto>>> GetTimeOffEntries([FromQuery]TimeEntryFilter filter)
         {
             if (!filter.Start.HasValue && !filter.End.HasValue)

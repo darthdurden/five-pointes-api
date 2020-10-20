@@ -1,6 +1,7 @@
 ﻿using FivePointes.Api.Dtos;
 using FivePointes.Logic.Models;
 using FivePointes.Logic.Ports;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NodaTime;
 using System;
@@ -30,6 +31,7 @@ namespace FivePointes.Api.Controllers.CSVA
 
         [HttpGet]
         [ProducesResponseType(200)]
+        [AllowAnonymous]
         public async Task<ActionResult<TimeTrackingSummaryDto>> GetSummary()
         {
             var nowInZone = _clock.GetCurrentInstant().InZone(DateTimeZoneProviders.Tzdb.GetSystemDefault());
@@ -54,10 +56,26 @@ namespace FivePointes.Api.Controllers.CSVA
 
             if(fetchTasks.All(x => x.IsCompletedSuccessfully))
             {
-                var hours = 0.0;
-                foreach (var date in new DateInterval(today, DateAdjusters.EndOfMonth(today)))
+                var pastHours = 0.0;
+                var remainingWorkableHours = 0.0;
+                foreach (var date in new DateInterval(DateAdjusters.StartOfMonth(today), DateAdjusters.EndOfMonth(today)))
                 {
-                    hours += GetFutureWorkingHours(date, timeOffEntriesTask.Result.Value);
+                    if(date < today)
+                    {
+                        pastHours += GetWorkingHours(date, timeOffEntriesTask.Result.Value);
+                    }
+                    else if(date == today)
+                    {
+                        var workableHoursToday = GetWorkingHours(date, timeOffEntriesTask.Result.Value);
+                        var futureWorkableHoursToday = GetFutureWorkingHours(date, timeOffEntriesTask.Result.Value);
+
+                        remainingWorkableHours += futureWorkableHoursToday;
+                        pastHours += workableHoursToday - futureWorkableHoursToday;
+                    }
+                    else
+                    {
+                        remainingWorkableHours += GetFutureWorkingHours(date, timeOffEntriesTask.Result.Value);
+                    }
                 }
 
                 var clientInfos = new List<TimeTrackingClientInfo>();
@@ -70,19 +88,54 @@ namespace FivePointes.Api.Controllers.CSVA
                         Name = client.Name,
                         SpentHours = timeEntries.Sum(x => x.Duration.TotalHours),
                         TotalCommittedHours = client.Commitment.TotalHours,
-                        RemainingWorkableHours = hours,
+                        RemainingWorkableHours = remainingWorkableHours,
                         Colors = timeEntries.Select(x => x.Color).Distinct()
                     });
                 }
 
                 return new TimeTrackingSummaryDto
                 {
-                    RemainingWorkableHours = hours,
+                    PastWorkableHours = pastHours,
+                    RemainingWorkableHours = remainingWorkableHours,
                     Clients = clientInfos
                 };
             }
 
             return null; // TODO
+        }
+
+        private double GetWorkingHours(LocalDate date, IEnumerable<TimeEntry> timeOff)
+        {
+            var hours = 0.0;
+
+            if (date.DayOfWeek == IsoDayOfWeek.Saturday || date.DayOfWeek == IsoDayOfWeek.Sunday)
+            {
+                return hours;
+            }
+
+            hours = 7;
+
+            var startingTime = date.At(new LocalTime(9, 0)).InZoneLeniently(DateTimeZoneProviders.Tzdb.GetSystemDefault()).ToInstant();
+            var lunchStartTime = date.At(new LocalTime(12, 0)).InZoneLeniently(DateTimeZoneProviders.Tzdb.GetSystemDefault()).ToInstant();
+            var lunchEndTime = date.At(new LocalTime(13, 0)).InZoneLeniently(DateTimeZoneProviders.Tzdb.GetSystemDefault()).ToInstant();
+            var quittingTime = date.At(new LocalTime(17, 0)).InZoneLeniently(DateTimeZoneProviders.Tzdb.GetSystemDefault()).ToInstant();
+
+            // Morning Time Off
+            var morningTimeOffOnDate = timeOff.Where(x => x.Start <= lunchStartTime && x.End >= startingTime).OrderBy(x => x.Start);
+            foreach (var morningTimeOff in morningTimeOffOnDate)
+            {
+                hours -= (Instant.Min(lunchStartTime, morningTimeOff.End) - Instant.Max(morningTimeOff.Start, startingTime)).TotalHours;
+            }
+
+            // Afternoon Time Off
+            var afternoonTimeOffOnDate = timeOff.Where(x => x.Start <= quittingTime && x.End >= lunchEndTime).OrderBy(x => x.Start);
+            foreach (var afternoonTimeOff in afternoonTimeOffOnDate)
+            {
+                hours -= (Instant.Min(quittingTime, afternoonTimeOff.End) - Instant.Max(afternoonTimeOff.Start, lunchEndTime)).TotalHours;
+            }
+
+            // Don't allow hours to go negative because of overlapping timeoff
+            return Math.Max(hours, 0);
         }
 
         private double GetFutureWorkingHours(LocalDate date, IEnumerable<TimeEntry> timeOff)
@@ -131,7 +184,8 @@ namespace FivePointes.Api.Controllers.CSVA
                 }
             }
 
-            return hours;
+            // Don't allow hours to go negative because of overlapping time off
+            return Math.Max(hours, 0);
         }
     }
 }

@@ -38,7 +38,7 @@ namespace FivePointes.Api.Mappings.Resolvers
             ReplaceRouteVariables(sb, halContext.PathParameters);
             AddQueryParameters(sb, halContext.QueryParameters);
 
-            return new Uri($"https://api.carolynscottphotography.com{sb}");
+            return new Uri($"https://api.lookatmycode.com{sb}");
         }
 
         private StringBuilder GetTemplatedPath(params ICustomAttributeProvider[] providers)
