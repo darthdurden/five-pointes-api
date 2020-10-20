@@ -44,29 +44,11 @@ namespace FivePointes.Api
 
             services.AddCors(options =>
             {
-                options.AddPolicy(name: "Local",
-                                  builder =>
-                                  {
-                                      builder.WithOrigins("http://localhost:3000");
-                                      builder.AllowAnyMethod();
-                                      builder.AllowAnyHeader();
-                                  });
-
-                options.AddPolicy(name: "LAMC",
-                                  builder =>
-                                  {
-                                      builder.WithOrigins("https://finances.lookatmycode.com");
-                                      builder.AllowAnyMethod();
-                                      builder.AllowAnyHeader();
-                                  });
-
-                options.AddPolicy(name: "CSVA",
-                                  builder =>
-                                  {
-                                      builder.WithOrigins("https://admin.carolynscottva.com");
-                                      builder.AllowAnyMethod();
-                                      builder.AllowAnyHeader();
-                                  });
+                options.AddDefaultPolicy(builder => {
+                    builder.WithOrigins("http://localhost:3000", "https://finances.lookatmycode.com", "https://admin.carolynscottva.com");
+                    builder.AllowAnyMethod();
+                    builder.AllowAnyHeader();
+                });
             });
 
             services.AddRouting(options => options.LowercaseUrls = true);
@@ -182,9 +164,7 @@ namespace FivePointes.Api
 
             app.UseHttpsRedirection();
 
-            app.UseCors("Local");
-            app.UseCors("LAMC");
-            app.UseCors("CSVA");
+            app.UseCors();
 
             app.UseRouting();
 

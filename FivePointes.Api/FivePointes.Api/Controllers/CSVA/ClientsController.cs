@@ -6,6 +6,7 @@ using FivePointes.Api.Dtos;
 using FivePointes.Common;
 using FivePointes.Logic.Models;
 using FivePointes.Logic.Ports;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FivePointes.Api.Controllers.CSVA
@@ -38,6 +39,7 @@ namespace FivePointes.Api.Controllers.CSVA
         }
 
         [HttpPut("{id}")]
+        [AllowAnonymous]
         [ProducesResponseType(200)]
         public async Task<ActionResult<ClientDto>> UpdateClient([FromRoute] string id, [FromBody] ClientDto client)
         {
