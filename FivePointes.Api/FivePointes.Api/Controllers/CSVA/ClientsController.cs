@@ -39,7 +39,6 @@ namespace FivePointes.Api.Controllers.CSVA
         }
 
         [HttpPut("{id}")]
-        [AllowAnonymous]
         [ProducesResponseType(200)]
         public async Task<ActionResult<ClientDto>> UpdateClient([FromRoute] string id, [FromBody] ClientDto client)
         {

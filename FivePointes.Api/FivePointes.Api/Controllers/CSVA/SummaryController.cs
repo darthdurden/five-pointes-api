@@ -31,7 +31,6 @@ namespace FivePointes.Api.Controllers.CSVA
 
         [HttpGet]
         [ProducesResponseType(200)]
-        [AllowAnonymous]
         public async Task<ActionResult<TimeTrackingSummaryDto>> GetSummary()
         {
             var nowInZone = _clock.GetCurrentInstant().InZone(DateTimeZoneProviders.Tzdb.GetSystemDefault());

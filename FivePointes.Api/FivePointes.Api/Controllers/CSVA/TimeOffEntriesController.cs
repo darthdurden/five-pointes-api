@@ -42,7 +42,6 @@ namespace FivePointes.Api.Controllers.CSVA
         }
 
         [HttpDelete("{id}")]
-        [AllowAnonymous]
         [ProducesResponseType(204)]
         public async Task<ActionResult<TimeOffEntryDto>> DeleteTimeOffEntry(long id)
         {
@@ -57,7 +56,6 @@ namespace FivePointes.Api.Controllers.CSVA
 
         [HttpGet]
         [ProducesResponseType(200)]
-        [AllowAnonymous]
         public async Task<ActionResult<List<TimeOffEntryDto>>> GetTimeOffEntries([FromQuery]TimeEntryFilter filter)
         {
             if (!filter.Start.HasValue && !filter.End.HasValue)
@@ -76,7 +74,6 @@ namespace FivePointes.Api.Controllers.CSVA
         }
 
         [HttpPost]
-        [AllowAnonymous]
         [Consumes("application/json")]
         [ProducesResponseType(201)]
         public async Task<ActionResult<TimeOffEntryDto>> CreateTimeOffEntry(TimeOffEntryDto timeOffEntry)
