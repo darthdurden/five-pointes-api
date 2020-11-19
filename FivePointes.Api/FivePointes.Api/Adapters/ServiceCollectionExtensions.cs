@@ -25,6 +25,7 @@ namespace FivePointes.Api.Adapters
                 return new Clockify.Net.ClockifyClient(options.Value.ApiKey);
             });
             services.AddScoped<IClock>(serviceProvider => SystemClock.Instance);
+            //services.AddScoped<IClock>(ServiceProvider => new TestClock());
 
             return services;
         }

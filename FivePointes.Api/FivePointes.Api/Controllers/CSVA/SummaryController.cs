@@ -57,6 +57,8 @@ namespace FivePointes.Api.Controllers.CSVA
             {
                 var pastHours = 0.0;
                 var remainingWorkableHours = 0.0;
+                var dayStartRemainingWorkableHours = 0.0;
+                var workableHoursToday = 0.0;
                 foreach (var date in new DateInterval(DateAdjusters.StartOfMonth(today), DateAdjusters.EndOfMonth(today)))
                 {
                     if(date < today)
@@ -65,15 +67,18 @@ namespace FivePointes.Api.Controllers.CSVA
                     }
                     else if(date == today)
                     {
-                        var workableHoursToday = GetWorkingHours(date, timeOffEntriesTask.Result.Value);
+                        workableHoursToday = GetWorkingHours(date, timeOffEntriesTask.Result.Value);
                         var futureWorkableHoursToday = GetFutureWorkingHours(date, timeOffEntriesTask.Result.Value);
 
                         remainingWorkableHours += futureWorkableHoursToday;
+                        dayStartRemainingWorkableHours += workableHoursToday;
                         pastHours += workableHoursToday - futureWorkableHoursToday;
                     }
                     else
                     {
-                        remainingWorkableHours += GetFutureWorkingHours(date, timeOffEntriesTask.Result.Value);
+                        var futureWorkingHours = GetFutureWorkingHours(date, timeOffEntriesTask.Result.Value);
+                        remainingWorkableHours += futureWorkingHours;
+                        dayStartRemainingWorkableHours += futureWorkingHours;
                     }
                 }
 
@@ -81,21 +86,24 @@ namespace FivePointes.Api.Controllers.CSVA
                 foreach (var client in clientsTask.Result.Value)
                 {
                     var timeEntries = clientTimeEntriesTask.Result.Value.Where(x => x.ClientId == client.Id);
+                    var timeEntriesToday = timeEntries.Where(x => x.Start != Instant.MinValue && x.Start.InZone(DateTimeZoneProviders.Tzdb.GetSystemDefault()).Date == today);
+
                     clientInfos.Add(new TimeTrackingClientInfo
                     {
                         Id = client.Id,
                         Name = client.Name,
-                        SpentHours = timeEntries.Sum(x => x.Duration.TotalHours),
+                        SpentHours = timeEntries.Select(x => x.Duration.TotalHours).DefaultIfEmpty(0).Sum(),
                         TotalCommittedHours = client.Commitment.TotalHours,
                         RemainingWorkableHours = remainingWorkableHours,
-                        Colors = timeEntries.Select(x => x.Color).Distinct()
+                        Colors = timeEntries.Select(x => x.Color).Distinct(),
+                        DayStartRemainingWorkableHours = dayStartRemainingWorkableHours,
+                        WorkableHoursToday = workableHoursToday,
+                        TodaySpentHours = timeEntriesToday.Select(x => x.Duration.TotalHours).DefaultIfEmpty(0).Sum()
                     });
                 }
 
                 return new TimeTrackingSummaryDto
                 {
-                    PastWorkableHours = pastHours,
-                    RemainingWorkableHours = remainingWorkableHours,
                     Clients = clientInfos
                 };
             }
@@ -103,7 +111,7 @@ namespace FivePointes.Api.Controllers.CSVA
             return null; // TODO
         }
 
-        private double GetWorkingHours(LocalDate date, IEnumerable<TimeEntry> timeOff)
+        private static double GetWorkingHours(LocalDate date, IEnumerable<TimeEntry> timeOff)
         {
             var hours = 0.0;
 
