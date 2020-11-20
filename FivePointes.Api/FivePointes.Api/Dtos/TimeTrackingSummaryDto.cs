@@ -9,6 +9,7 @@ namespace FivePointes.Api.Dtos
         public double TodayOvertimeHours => Clients.Sum(x => x.TodayOvertimeHours);
         public double TotalCommittedHours => Clients.Sum(x => x.TotalCommittedHours);
         public double RemainingCommittedHours => Clients.Sum(x => x.RemainingCommittedHours);
+        public double OvertimeHours => Clients.Sum(x => x.OvertimeHours);
         public double AverageHoursPerDayRemaining => Clients.Sum(x => x.AverageHoursPerDayRemaining);
         public double DayStartAverageHoursPerDayRemaining => Clients.Sum(x => x.DayStartAverageHoursPerDayRemaining);
         public IEnumerable<TimeTrackingClientInfo> Clients { get; set; }
