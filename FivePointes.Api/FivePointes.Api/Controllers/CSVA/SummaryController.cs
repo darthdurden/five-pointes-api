@@ -88,19 +88,25 @@ namespace FivePointes.Api.Controllers.CSVA
                     var timeEntries = clientTimeEntriesTask.Result.Value.Where(x => x.ClientId == client.Id);
                     var timeEntriesToday = timeEntries.Where(x => x.Start != Instant.MinValue && x.Start.InZone(DateTimeZoneProviders.Tzdb.GetSystemDefault()).Date == today);
 
-                    clientInfos.Add(new TimeTrackingClientInfo
+                    if (timeEntries.Count() > 0)
                     {
-                        Id = client.Id,
-                        Name = client.Name,
-                        SpentHours = timeEntries.Select(x => x.Duration.TotalHours).DefaultIfEmpty(0).Sum(),
-                        TotalCommittedHours = client.Commitment.TotalHours,
-                        RemainingWorkableHours = remainingWorkableHours,
-                        Colors = timeEntries.Select(x => x.Color).Distinct(),
-                        DayStartRemainingWorkableHours = dayStartRemainingWorkableHours,
-                        WorkableHoursToday = workableHoursToday,
-                        TodaySpentHours = timeEntriesToday.Select(x => x.Duration.TotalHours).DefaultIfEmpty(0).Sum()
-                    });
+                        clientInfos.Add(new TimeTrackingClientInfo
+                        {
+                            Id = client.Id,
+                            Name = client.Name,
+                            SpentHours = timeEntries.Select(x => x.Duration.TotalHours).DefaultIfEmpty(0).Sum(),
+                            TotalCommittedHours = client.Commitment.TotalHours,
+                            RemainingWorkableHours = remainingWorkableHours,
+                            Colors = timeEntries.Select(x => x.Color).Distinct(),
+                            DayStartRemainingWorkableHours = dayStartRemainingWorkableHours,
+                            WorkableHoursToday = workableHoursToday,
+                            TodaySpentHours = timeEntriesToday.Select(x => x.Duration.TotalHours).DefaultIfEmpty(0).Sum()
+                        });
+                    }
                 }
+
+                // TODO handle it somehow if this isn't empty
+                var unaccountedTime = clientTimeEntriesTask.Result.Value.Where(x => x.ClientId == null);
 
                 return new TimeTrackingSummaryDto
                 {

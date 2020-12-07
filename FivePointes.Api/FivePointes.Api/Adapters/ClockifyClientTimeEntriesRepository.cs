@@ -39,6 +39,7 @@ namespace FivePointes.Api.Adapters
 
             var projectsTask = _clockifyClient.FindAllProjectsOnWorkspaceAsync(
                 workspaceId: _options.WorkspaceId,
+                archived: false,
                 pageSize: 1000);
 
             var clockifyTasks = new List<Task>
@@ -57,8 +58,11 @@ namespace FivePointes.Api.Adapters
                 clientTimeEntries.Add(_mapper.Map<TimeEntryDtoImpl, ClientTimeEntry>(clockifyEntry, opt => opt.AfterMap((src, dest) =>
                 {
                     var project = projectsTask.Result.Data.FirstOrDefault(x => x.Id == src.ProjectId);
-                    dest.ClientId = project.ClientId;
-                    dest.Color = project.Color;
+                    if (project != null)
+                    {
+                        dest.ClientId = project.ClientId;
+                        dest.Color = project.Color;
+                    }
                 })));
             }
 

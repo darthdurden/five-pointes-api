@@ -37,6 +37,7 @@ namespace FivePointes.Api.Adapters
             var clientsTask = _clockifyClient.FindAllClientsOnWorkspaceAsync(
                 workspaceId: _options.WorkspaceId
                 );
+
             var commitmentsTask = _context.Commitments.ToListAsync();
 
             var initTasks = new List<Task>
