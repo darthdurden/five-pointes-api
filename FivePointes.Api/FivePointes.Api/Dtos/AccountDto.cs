@@ -11,5 +11,7 @@ namespace FivePointes.Api.Dtos
         public string Name { get; set; }
         public decimal Total { get; private set; }
         public decimal ClearedTotal { get; private set; }
+        public string IconClass { get; set; }
+        public string Color { get; set; }
     }
 }

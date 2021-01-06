@@ -12,6 +12,8 @@ namespace FivePointes.Api.Dtos
         [ReadOnly(true)]
         public long Id { get; set; }
         public string Name { get; set; }
+        public string IconClass { get; set; }
+        public string Color { get; set; }
         public TransactionType TransactionType { get; set; }
     }
 }

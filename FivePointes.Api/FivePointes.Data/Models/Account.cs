@@ -6,6 +6,8 @@ namespace FivePointes.Data.Models
     {
         public long Id { get; set; }
         public string Name { get; set; }
+        public string IconClass { get; set; }
+        public string Color { get; set; }
         public ICollection<Expense> Expenses { get; set; }
     }
 }

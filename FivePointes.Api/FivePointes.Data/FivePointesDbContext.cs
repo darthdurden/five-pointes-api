@@ -1,7 +1,9 @@
 ﻿using FivePointes.Data.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System;
+using System.Collections.Generic;
 
 namespace FivePointes.Data
 {
@@ -31,6 +33,11 @@ namespace FivePointes.Data
                 v => v.HasValue ? v.Value.ToUniversalTime() : v,
                 v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v);
 
+            var boolValueComparer = new ValueComparer<bool>(
+                (c1, c2) => c1 == c2,
+                c => c.GetHashCode(),
+                c => c);
+
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
                 /*if (entityType.IsQueryType)
@@ -47,6 +54,10 @@ namespace FivePointes.Data
                     else if (property.ClrType == typeof(DateTime?))
                     {
                         property.SetValueConverter(nullableDateTimeConverter);
+                    }
+                    else if (property.ClrType == typeof(bool))
+                    {
+                        property.SetValueComparer(boolValueComparer);
                     }
                 }
             }

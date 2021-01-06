@@ -6,5 +6,7 @@
         public string Name { get; set; }
         public decimal Total { get; set; }
         public decimal ClearedTotal { get; set; }
+        public string IconClass { get; set; }
+        public string Color { get; set; }
     }
 }

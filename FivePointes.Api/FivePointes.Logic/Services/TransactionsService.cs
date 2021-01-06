@@ -4,6 +4,7 @@ using FivePointes.Logic.Models.Filters;
 using FivePointes.Logic.Ports;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -42,6 +43,11 @@ namespace FivePointes.Logic.Services
                 }
             }
 
+            if(transaction.Account == null)
+            {
+                transaction.IsCleared = true;
+            }
+
             return await _repository.CreateAsync(transaction);
         }
 
@@ -55,13 +61,55 @@ namespace FivePointes.Logic.Services
             return _repository.GetAsync(id);
         }
 
-        public Task<Result<IEnumerable<Transaction>>> GetAsync(TransactionFilter filter)
+        public async Task<Result<IEnumerable<Transaction>>> GetAsync(TransactionFilter filter)
         {
-            return _repository.GetAsync(filter);
+            // If filtering by cleared, just filter as specified
+            if(filter.IsCleared.HasValue)
+            {
+                var transResult = await _repository.GetAsync(filter);
+                if(!transResult.IsSuccessful())
+                {
+                    return transResult;
+                }
+
+                return Result.Success(SortTransactions(transResult.Value));
+            }
+
+            // If not filtering by cleared, grab all the cleared transactions based on the filter
+            filter.IsCleared = true;
+            var cleared = await _repository.GetAsync(filter);
+
+            if(!cleared.IsSuccessful())
+            {
+                return cleared;
+            }
+
+            // Then grab all of the uncleared transactions all time
+            filter.IsCleared = false;
+            filter.StartDate = null;
+            filter.EndDate = null;
+            var uncleared = await _repository.GetAsync(filter);
+
+            if(!uncleared.IsSuccessful())
+            {
+                return uncleared;
+            }
+
+            return Result.Success(SortTransactions(uncleared.Value.Concat(cleared.Value)));
+        }
+
+        private IEnumerable<Transaction> SortTransactions(IEnumerable<Transaction> unsorted)
+        {
+            return unsorted.OrderBy(x => x.IsCleared).ThenByDescending(x => x.Date);
         }
 
         public Task<Result<Transaction>> UpdateAsync(Transaction transaction)
         {
+            if(transaction.Account == null)
+            {
+                transaction.IsCleared = true;
+            }
+
             return _repository.UpdateAsync(transaction);
         }
     }

@@ -69,7 +69,7 @@ namespace FivePointes.Api.Adapters
                 query = query.Where(x => filter.Types.Cast<int>().Contains(x.Category.Type));
             }
 
-            return query.OrderBy(x => x.DatePaid);
+            return query.OrderBy(x => x.IsCleared).ThenByDescending(x => x.DatePaid);
         }
     }
 }
