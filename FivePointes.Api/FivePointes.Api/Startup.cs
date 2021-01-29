@@ -23,6 +23,7 @@ using System.Text.Json;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
 using System.Text.Json.Serialization;
+using Stripe;
 
 namespace FivePointes.Api
 {
@@ -113,6 +114,10 @@ namespace FivePointes.Api
                 .Configure<ClockifyOptions>(options =>
                 {
                     Configuration.Bind("Clockify", options);
+                })
+                .Configure<StripeOptions>(options =>
+                {
+                    Configuration.Bind("Stripe", options);
                 })
                 .AddAuthorization()
                 .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
