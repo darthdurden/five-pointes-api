@@ -9,6 +9,7 @@ namespace FivePointes.Logic.Ports
     public interface ITransactionsService
     {
         Task<Result<Transaction>> GetAsync(long id);
+        Task<Result<Transaction>> GetAsync(string source, string sourceId);
         Task<Result<IEnumerable<Transaction>>> GetAsync(TransactionFilter filter);
         Task<Result<Transaction>> UpdateAsync(Transaction transaction);
         Task<Result<Transaction>> CreateAsync(Transaction transaction);

@@ -4,5 +4,6 @@
     {
         public string ClientId { get; set; }
         public double AmountInHours { get; set; }
+        public bool IsHidden { get; set; }
     }
 }

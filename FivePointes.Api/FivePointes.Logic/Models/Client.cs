@@ -9,5 +9,7 @@ namespace FivePointes.Logic.Models
         public string Name { get; set; }
 
         public Duration Commitment { get; set; }
+
+        public bool IsHidden { get; set; }
     }
 }

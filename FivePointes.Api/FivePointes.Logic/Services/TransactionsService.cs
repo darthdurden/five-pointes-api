@@ -61,6 +61,11 @@ namespace FivePointes.Logic.Services
             return _repository.GetAsync(id);
         }
 
+        public Task<Result<Transaction>> GetAsync(string source, string sourceId)
+        {
+            return _repository.GetAsync(source, sourceId);
+        }
+
         public async Task<Result<IEnumerable<Transaction>>> GetAsync(TransactionFilter filter)
         {
             // If filtering by cleared, just filter as specified
@@ -103,14 +108,23 @@ namespace FivePointes.Logic.Services
             return unsorted.OrderBy(x => x.IsCleared).ThenByDescending(x => x.Date);
         }
 
-        public Task<Result<Transaction>> UpdateAsync(Transaction transaction)
+        public async Task<Result<Transaction>> UpdateAsync(Transaction transaction)
         {
             if(transaction.Account == null)
             {
                 transaction.IsCleared = true;
             }
 
-            return _repository.UpdateAsync(transaction);
+            var existingResult = await _repository.GetAsync(transaction.Id);
+            if (!existingResult.IsSuccessful())
+            {
+                return existingResult;
+            }
+
+            transaction.Source = existingResult.Value.Source;
+            transaction.SourceId = existingResult.Value.SourceId;
+
+            return await _repository.UpdateAsync(transaction);
         }
     }
 }

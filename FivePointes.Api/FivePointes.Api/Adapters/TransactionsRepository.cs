@@ -15,6 +15,27 @@ namespace FivePointes.Api.Adapters
     {
         public TransactionsRepository(FivePointesDbContext context, IMapper mapper) : base(mapper, context, context.Expenses, new[] { "Category", "Account" }) { }
 
+        public async Task<Result<Transaction>> GetAsync(string source, string sourceId)
+        {
+            try
+            {
+                var query = _models.AsQueryable();
+
+                var expense = await query.FirstOrDefaultAsync(x => x.Source == source && x.SourceId == sourceId);
+
+                if(expense == null)
+                {
+                    return Result.Error<Transaction>(System.Net.HttpStatusCode.NotFound);
+                }
+
+                return Result.Success(_mapper.Map<Transaction>(expense));
+            }
+            catch (Exception e)
+            {
+                return Result.Exception<Transaction>(e);
+            }
+        }
+
         public async Task<Result<decimal>> GetTotalAsync(TransactionFilter filter)
         {
             try

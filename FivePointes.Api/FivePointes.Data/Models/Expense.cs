@@ -15,5 +15,8 @@ namespace FivePointes.Data.Models
 
         public Account Account { get; set; }
         public long? AccountId { get; set; }
+
+        public string Source { get; set; }
+        public string SourceId { get; set; }
     }
 }

@@ -21,5 +21,6 @@ namespace FivePointes.Api.Dtos
         public double AverageHoursPerDayRemaining => RemainingWorkableDays > 0 ? RemainingCommittedHours / RemainingWorkableDays : 0;
         public double DayStartAverageHoursPerDayRemaining => (DayStartRemainingWorkableDays > 0 ? (RemainingCommittedHours + (TodaySpentHours - TodayOvertimeHours)) / DayStartRemainingWorkableDays : 0) * (WorkableHoursToday / 7.0);
         public IEnumerable<string> Colors { get; set; }
+        public bool IsHidden { get; set; }
     }
 }

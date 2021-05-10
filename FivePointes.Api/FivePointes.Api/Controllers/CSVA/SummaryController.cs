@@ -100,7 +100,8 @@ namespace FivePointes.Api.Controllers.CSVA
                             Colors = timeEntries.Select(x => x.Color).Distinct(),
                             DayStartRemainingWorkableHours = dayStartRemainingWorkableHours,
                             WorkableHoursToday = workableHoursToday,
-                            TodaySpentHours = timeEntriesToday.Select(x => x.Duration.TotalHours).DefaultIfEmpty(0).Sum()
+                            TodaySpentHours = timeEntriesToday.Select(x => x.Duration.TotalHours).DefaultIfEmpty(0).Sum(),
+                            IsHidden = client.IsHidden
                         });
                     }
                 }

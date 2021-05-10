@@ -68,7 +68,10 @@ namespace FivePointes.Api.Adapters
                     addedCommitments = true;
                 }
 
-                clients.Add(_mapper.Map<ClientDto, Client>(clockifyClient, opt => opt.AfterMap((src, dest) => dest.Commitment = Duration.FromHours(commitment.AmountInHours))));
+                clients.Add(_mapper.Map<ClientDto, Client>(clockifyClient, opt => opt.AfterMap((src, dest) => {
+                    dest.Commitment = Duration.FromHours(commitment.AmountInHours);
+                    dest.IsHidden = commitment.IsHidden;
+                })));
             }
 
             if (addedCommitments)
@@ -102,9 +105,13 @@ namespace FivePointes.Api.Adapters
             }
 
             commitment.AmountInHours = client.Commitment.TotalHours;
+            commitment.IsHidden = client.IsHidden;
             await _context.SaveChangesAsync();
 
-            return Result.Success(_mapper.Map<ClientDto, Client>(clockifyClient, opt => opt.AfterMap((src, dest) => dest.Commitment = Duration.FromHours(commitment.AmountInHours))));
+            return Result.Success(_mapper.Map<ClientDto, Client>(clockifyClient, opt => opt.AfterMap((src, dest) => {
+                dest.Commitment = Duration.FromHours(commitment.AmountInHours);
+                dest.IsHidden = commitment.IsHidden;
+            })));
         }
     }
 }

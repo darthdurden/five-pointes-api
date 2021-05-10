@@ -39,23 +39,26 @@ namespace FivePointes.Api.Controllers.Finances.Webhooks
 
         [HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> HandleWebook()
+        public async Task<IActionResult> HandleWebook([FromQuery]string accountId)
         {
             var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
+            var secret = "";
             try
             {
                 var stripeEvent = EventUtility.ParseEvent(json);
                 var signatureHeader = Request.Headers["Stripe-Signature"];
 
-                if(stripeEvent.Account == null)
+                if(accountId == null)
                 {
                     StripeConfiguration.ApiKey = _stripeOptions.ApiKeys.First().Value;
+                    secret = "No Account: " + _stripeOptions.WebhookSecrets.First().Value;
                     stripeEvent = EventUtility.ConstructEvent(json, signatureHeader, _stripeOptions.WebhookSecrets.First().Value);
                 }
                 else
                 {
-                    StripeConfiguration.ApiKey = _stripeOptions.ApiKeys[stripeEvent.Account];
-                    stripeEvent = EventUtility.ConstructEvent(json, signatureHeader, _stripeOptions.WebhookSecrets[stripeEvent.Account]);
+                    StripeConfiguration.ApiKey = _stripeOptions.ApiKeys[accountId];
+                    secret = _stripeOptions.WebhookSecrets[accountId];
+                    stripeEvent = EventUtility.ConstructEvent(json, signatureHeader, _stripeOptions.WebhookSecrets[accountId]);
                 }
 
                 switch (stripeEvent.Type)
@@ -102,32 +105,51 @@ namespace FivePointes.Api.Controllers.Finances.Webhooks
                             return new ErrorActionResult(allAccounts);
                         }
 
-                        var description = charge.Customer != null ? charge.Customer.Name : charge.Description;
+                        var description = charge.Customer != null ? charge.Customer.Name + " - " + charge.Description : charge.Description;
 
                         var bizAccount = allAccounts.Value.FirstOrDefault(x => x.Name.Contains("Business"));
-                        await _transactionsService.CreateAsync(new Logic.Models.Transaction
-                        {
-                            Amount = charge.BalanceTransaction.Amount / 100.0M,
-                            Date = NodaTime.LocalDate.FromDateTime(charge.Created),
-                            Description = $"{charge.StatementDescriptor} - {description}",
-                            IsCleared = false,
-                            Category = incomeCategory,
-                            Account = bizAccount
-                            // TODO add balance transaction id to transaction to avoid duplicates
-                        });
 
-                        await _transactionsService.CreateAsync(new Logic.Models.Transaction
+                        var existingChargeResult = await _transactionsService.GetAsync("StripeCharge", charge.Id);
+                        if(!existingChargeResult.IsSuccessful() && existingChargeResult.Status != HttpStatusCode.NotFound)
                         {
-                            Amount = -(charge.BalanceTransaction.Fee / 100.0M),
-                            Date = NodaTime.LocalDate.FromDateTime(charge.Created),
-                            Description = $"{charge.StatementDescriptor} - {description} - Stripe Fees",
-                            IsCleared = false,
-                            Category = processingFeeCategory,
-                            Account = bizAccount
-                            // TODO add balance transaction id to transaction to avoid duplicates
-                        });
+                            return new ErrorActionResult(existingChargeResult);
+                        }
 
-                        // TODO add expense transaction to account for transaction fees
+                        if (!existingChargeResult.IsSuccessful())
+                        {
+                            await _transactionsService.CreateAsync(new Logic.Models.Transaction
+                            {
+                                Amount = charge.BalanceTransaction.Amount / 100.0M,
+                                Date = NodaTime.LocalDate.FromDateTime(charge.Created),
+                                Description = $"{charge.CalculatedStatementDescriptor} - {description}",
+                                IsCleared = false,
+                                Category = incomeCategory,
+                                Account = bizAccount,
+                                Source = "StripeCharge",
+                                SourceId = charge.Id
+                            });
+                        }
+
+                        var existingChargeFeeResult = await _transactionsService.GetAsync("StripeChargeFee", charge.Id);
+                        if (!existingChargeFeeResult.IsSuccessful() && existingChargeFeeResult.Status != HttpStatusCode.NotFound)
+                        {
+                            return new ErrorActionResult(existingChargeFeeResult);
+                        }
+
+                        if (!existingChargeResult.IsSuccessful())
+                        {
+                            await _transactionsService.CreateAsync(new Logic.Models.Transaction
+                            {
+                                Amount = -(charge.BalanceTransaction.Fee / 100.0M),
+                                Date = NodaTime.LocalDate.FromDateTime(charge.Created),
+                                Description = $"{charge.CalculatedStatementDescriptor} - {description} - Stripe Fees",
+                                IsCleared = false,
+                                Category = processingFeeCategory,
+                                Account = bizAccount,
+                                Source = "StripeChargeFee",
+                                SourceId = charge.Id
+                            });
+                        }
                         break;
                     case Events.ChargeRefunded:
                         var refund = stripeEvent.Data.Object as Refund;
@@ -139,7 +161,7 @@ namespace FivePointes.Api.Controllers.Finances.Webhooks
             }
             catch (Exception e)
             {
-                return new ErrorActionResult(Result.Error(HttpStatusCode.InternalServerError, e.Message));
+                return new ErrorActionResult(Result.Error(HttpStatusCode.InternalServerError, e.Message + " " + StripeConfiguration.ApiKey + " " + secret));
             }
         }
     }

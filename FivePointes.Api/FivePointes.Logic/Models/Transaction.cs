@@ -13,5 +13,7 @@ namespace FivePointes.Logic.Models
         public bool IsCleared { get; set; }
         public TransactionCategory Category { get; set; }
 
+        public string Source { get; set; }
+        public string SourceId { get; set; }
     }
 }
