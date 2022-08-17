@@ -27,6 +27,10 @@ namespace FivePointes.Api.Adapters
             services.AddScoped<IClock>(serviceProvider => SystemClock.Instance);
             //services.AddScoped<IClock>(ServiceProvider => new TestClock());
 
+            services.AddScoped<IPortfoliosRepository, PortfoliosRepository>();
+            services.AddScoped<IFilesRepository, LocalFilesRepository>();
+            services.AddScoped<IImageProcessor, ImageMagickImageProcessor>();
+
             return services;
         }
     }

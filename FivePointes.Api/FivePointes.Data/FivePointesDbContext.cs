@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System;
-using System.Collections.Generic;
 
 namespace FivePointes.Data
 {
@@ -20,6 +19,10 @@ namespace FivePointes.Data
         public DbSet<Commitment> Commitments { get; set; }
 
         public DbSet<TimeOffEntry> TimeOffEntries { get; set; }
+
+        public DbSet<Portfolio> Portfolios { get; set; }
+
+        public DbSet<PortfolioPicture> PortfolioPictures { get; set; }
 
         public FivePointesDbContext(DbContextOptions options) : base(options) { }
 
@@ -102,6 +105,17 @@ namespace FivePointes.Data
             {
                 builder.ToTable("TimeOffEntry");
                 builder.HasKey(x => x.Id);
+            });
+
+            modelBuilder.Entity<Portfolio>(builder =>
+            {
+                builder.ToTable("PortfolioCategory");
+                builder.HasKey(x => x.Id);
+                builder.HasMany(x => x.Pictures).WithOne(x => x.Portfolio);
+            });
+            modelBuilder.Entity<PortfolioPicture>(builder => {
+                builder.ToTable("PortfolioPicture").HasKey(x => x.Id);
+                builder.Property(x => x.PortfolioId).HasColumnName("PortfolioCategory_ID");
             });
         }
     }

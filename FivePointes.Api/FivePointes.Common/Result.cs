@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 
 namespace FivePointes.Common
@@ -53,6 +54,11 @@ namespace FivePointes.Common
         public static Result Error(HttpStatusCode errorCode, params string[] errors)
         {
             return new Result(errorCode, errors);
+        }
+
+        public static Result Error(HttpStatusCode errorCode, IEnumerable<string> errors)
+        {
+            return new Result(errorCode, errors.ToArray());
         }
 
 

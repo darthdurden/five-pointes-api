@@ -9,6 +9,7 @@ namespace FivePointes.Data.Models
         public DateTime DatePaid { get; set; }
         public decimal Price { get; set; }
         public bool IsCleared { get; set; }
+        public bool WrittenOff { get; set; }
 
         public ExpenseCategory Category { get; set; }
         public long? CategoryId { get; set; }

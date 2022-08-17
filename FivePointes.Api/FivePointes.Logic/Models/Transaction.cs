@@ -11,6 +11,7 @@ namespace FivePointes.Logic.Models
         public decimal Amount { get; set; }
 
         public bool IsCleared { get; set; }
+        public bool IsWrittenOff { get; set; }
         public TransactionCategory Category { get; set; }
 
         public string Source { get; set; }

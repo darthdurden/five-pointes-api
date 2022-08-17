@@ -12,6 +12,7 @@ namespace FivePointes.Logic
             services.AddScoped<ITransactionsService, TransactionsService>();
             services.AddScoped<ITransactionCategoriesService, TransactionCategoriesService>();
             services.AddScoped<IAccountsService, AccountsService>();
+            services.AddScoped<IPortfoliosService, PortfoliosService>();
 
             return services;
         }

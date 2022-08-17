@@ -75,6 +75,11 @@ namespace FivePointes.Api.Adapters
                 query = query.Where(x => x.IsCleared == filter.IsCleared.Value);
             }
 
+            if (filter.IsWrittenOff.HasValue)
+            {
+                query = query.Where(x => x.WrittenOff == filter.IsWrittenOff.Value);
+            }
+
             if (filter.AccountId.HasValue)
             {
                 query = query.Where(x => x.AccountId == filter.AccountId.Value);
@@ -90,7 +95,7 @@ namespace FivePointes.Api.Adapters
                 query = query.Where(x => filter.Types.Cast<int>().Contains(x.Category.Type));
             }
 
-            return query.OrderBy(x => x.IsCleared).ThenByDescending(x => x.DatePaid);
+            return query.OrderBy(x => x.IsCleared).ThenByDescending(x => x.DatePaid).ThenBy(x => x.Description);
         }
     }
 }

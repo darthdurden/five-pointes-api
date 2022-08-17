@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using FivePointes.Api.Controllers;
 using FivePointes.Api.Controllers.Finances;
 using FivePointes.Api.Dtos;
 using FivePointes.Api.Dtos.Hal;
@@ -16,6 +15,7 @@ namespace FivePointes.Api.Mappings
             CreateMap<Data.Models.Expense, Transaction>()
                 .ForMember(x => x.Amount, opt => opt.MapFrom(x => x.Price))
                 .ForMember(x => x.Date, opt => opt.MapFrom(x => x.DatePaid))
+                .ForMember(x => x.IsWrittenOff, opt => opt.MapFrom(x => x.WrittenOff))
                 .ReverseMap()
                 .ForMember(x => x.Account, opt => opt.Ignore())
                 .ForMember(x => x.AccountId, opt => opt.MapFrom(x => x.Account != null ? x.Account.Id : (long?)null))

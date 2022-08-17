@@ -48,14 +48,10 @@ namespace FivePointes.Logic.Services
             var accountsResult = await _repository.GetAsync(filter);
             if(accountsResult.IsSuccessful()) 
             {
-                var populateTasks = new List<Task>();
-
                 foreach(var account in accountsResult.Value)
                 {
-                    populateTasks.Add(PopulateTotalsAsync(account));
+                    await PopulateTotalsAsync(account);
                 }
-
-                await Task.WhenAll(populateTasks);
             }
 
             return accountsResult;
@@ -68,23 +64,17 @@ namespace FivePointes.Logic.Services
 
         private async Task PopulateTotalsAsync(Account account)
         {
-            var clearedTask = _transactionsRepository.GetTotalAsync(new TransactionFilter { AccountId = account.Id, IsCleared = true });
-            var totalTask = _transactionsRepository.GetTotalAsync(new TransactionFilter { AccountId = account.Id });
-
-            await Task.WhenAll(clearedTask, totalTask);
-
-            if (!clearedTask.Result.IsSuccessful())
+            var clearedResult = await _transactionsRepository.GetTotalAsync(new TransactionFilter { AccountId = account.Id, IsCleared = true });
+            if (clearedResult.IsSuccessful())
             {
-                return;
+                account.ClearedTotal = clearedResult.Value;
             }
 
-            if (!totalTask.Result.IsSuccessful())
+            var totalResult = await _transactionsRepository.GetTotalAsync(new TransactionFilter { AccountId = account.Id });
+            if (totalResult.IsSuccessful())
             {
-                return;
+                account.Total = totalResult.Value;
             }
-
-            account.ClearedTotal = clearedTask.Result.Value;
-            account.Total = totalTask.Result.Value;
         }
     }
 }

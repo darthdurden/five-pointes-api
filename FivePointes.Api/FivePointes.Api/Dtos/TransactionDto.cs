@@ -19,5 +19,6 @@ namespace FivePointes.Api.Dtos
         public long? AccountId { get; set; }
         public long? CategoryId { get; set; }
         public TransactionType? Type { get; internal set; }
+        public bool IsWrittenOff { get; set; }
     }
 }

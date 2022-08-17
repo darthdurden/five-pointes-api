@@ -24,6 +24,7 @@ using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
 using System.Text.Json.Serialization;
 using Stripe;
+using FivePointes.Logic.Configuration;
 
 namespace FivePointes.Api
 {
@@ -46,7 +47,7 @@ namespace FivePointes.Api
             services.AddCors(options =>
             {
                 options.AddDefaultPolicy(builder => {
-                    builder.WithOrigins("http://localhost:3000", "https://finances.lookatmycode.com", "https://admin.carolynscottva.com");
+                    builder.WithOrigins("http://localhost:3000", "https://finances.lookatmycode.com", "https://admin.carolynscottva.com", "https://www.carolynscottphotography.com", "https://carolynscottphotography.com", "https://admin.carolynscottphotography.com");
                     builder.AllowAnyMethod();
                     builder.AllowAnyHeader();
                 });
@@ -84,10 +85,9 @@ namespace FivePointes.Api
                 c.MapType<Instant?>(() => new OpenApiSchema { Description = "Instant", Type = "string", Format = "date-time" });
 
                 var schemasToRemove = new List<string>();
-                c.SchemaFilter<InlineSchemaFilter>(schemasToRemove);
-                c.DocumentFilter<InlineSchemaFilter>(schemasToRemove);
                 c.SwaggerDoc("finances", new OpenApiInfo { Title = "Finances API", Version = "v1" });
                 c.SwaggerDoc("csva", new OpenApiInfo { Title = "Carlolyn Scott Virtual Assistant API", Version = "v1" });
+                c.SwaggerDoc("csp", new OpenApiInfo { Title = "Carlolyn Scott Photography API", Version = "v1" });
 
                 c.UseInlineDefinitionsForEnums();
             });
@@ -118,6 +118,10 @@ namespace FivePointes.Api
                 .Configure<StripeOptions>(options =>
                 {
                     Configuration.Bind("Stripe", options);
+                })
+                .Configure<PortfolioOptions>(options =>
+                {
+                    Configuration.Bind("Portfolio", options);
                 })
                 .AddAuthorization()
                 .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -158,6 +162,7 @@ namespace FivePointes.Api
             {
                 c.SwaggerEndpoint("/swagger/csva/swagger.json", "Carolyn Scott Virtual Assistant API v1");
                 c.SwaggerEndpoint("/swagger/finances/swagger.json", "Joint Finances API v1");
+                c.SwaggerEndpoint("/swagger/csp/swagger.json", "Carolyn Scott Photography API v1");
             });
 
             app.UseAuthentication().UseAuthorization();
