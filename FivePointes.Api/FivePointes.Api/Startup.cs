@@ -47,7 +47,7 @@ namespace FivePointes.Api
             services.AddCors(options =>
             {
                 options.AddDefaultPolicy(builder => {
-                    builder.WithOrigins("http://localhost:3000", "https://finances.lookatmycode.com", "https://admin.carolynscottva.com", "https://www.carolynscottphotography.com", "https://carolynscottphotography.com", "https://admin.carolynscottphotography.com");
+                    builder.WithOrigins("http://localhost:3000", "https://finances.lookatmycode.com", "https://admin.carolynscottva.com", "https://www.carolynscottphotography.com", "https://carolynscottphotography.com", "https://admin.carolynscottphotography.com", "https://portfolio.carolynscottphotography.com");
                     builder.AllowAnyMethod();
                     builder.AllowAnyHeader();
                 });
