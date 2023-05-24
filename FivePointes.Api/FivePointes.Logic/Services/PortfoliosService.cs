@@ -52,7 +52,8 @@ namespace FivePointes.Logic.Services
                 Width = originalImageResult.Value.Width,
                 Height = originalImageResult.Value.Height,
                 ThumbnailWidth = thumbnailImageResult.Value.Width,
-                ThumbnailHeight = thumbnailImageResult.Value.Height
+                ThumbnailHeight = thumbnailImageResult.Value.Height,
+                SortIndex = -1
             });
 
             if (!pictureResult.IsSuccessful())
@@ -82,7 +83,7 @@ namespace FivePointes.Logic.Services
 
         public async Task<Result> DeleteAsync(int id)
         {
-            var picturesResult = await _repository.GetPicturesAsync(id);
+            var picturesResult = await _repository.GetPicturesAsync(id, true);
             if (!picturesResult.IsSuccessful())
             {
                 return picturesResult;
@@ -150,7 +151,7 @@ namespace FivePointes.Logic.Services
             return await _repository.GetPictureAsync(pictureId);
         }
 
-        public async Task<Result<IEnumerable<PortfolioPicture>>> GetPicturesAsync(int id)
+        public async Task<Result<IEnumerable<PortfolioPicture>>> GetPicturesAsync(int id, bool includeDraft)
         {
             var portfolioResult = await _repository.GetAsync(id);
             if (!portfolioResult.IsSuccessful())
@@ -158,7 +159,7 @@ namespace FivePointes.Logic.Services
                 return portfolioResult.AsType<IEnumerable<PortfolioPicture>>();
             }
 
-            return await _repository.GetPicturesAsync(id);
+            return await _repository.GetPicturesAsync(id, includeDraft);
         }
 
         public async Task<Result<Stream>> GetPictureStreamAsync(int portfolioId, int pictureId, PictureSize size)
@@ -203,7 +204,7 @@ namespace FivePointes.Logic.Services
                 return updateResult.AsType<IEnumerable<PortfolioPicture>>();
             }
 
-            return await _repository.GetPicturesAsync(id);
+            return await _repository.GetPicturesAsync(id, false);
         }
     }
 

@@ -12,7 +12,7 @@ namespace FivePointes.Logic.Ports
         Task<Result<Portfolio>> UpdateAsync(Portfolio portfolio);
         Task<Result<Portfolio>> GetAsync(int id);
         Task<Result> DeleteAsync(int id);
-        Task<Result<IEnumerable<PortfolioPicture>>> GetPicturesAsync(int id);
+        Task<Result<IEnumerable<PortfolioPicture>>> GetPicturesAsync(int id, bool includeDraft);
         Task<Result> UpdatePicturesAsync(IEnumerable<PortfolioPicture> updates);
         Task<Result<PortfolioPicture>> GetPictureAsync(int pictureId);
         Task<Result<PortfolioPicture>> CreatePictureAsync(PortfolioPicture picture);

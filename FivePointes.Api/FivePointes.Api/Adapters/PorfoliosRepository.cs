@@ -56,11 +56,17 @@ namespace FivePointes.Api.Adapters
             }
         }
 
-        public async Task<Result<IEnumerable<PortfolioPicture>>> GetPicturesAsync(int id)
+        public async Task<Result<IEnumerable<PortfolioPicture>>> GetPicturesAsync(int id, bool includeDraft)
         {
             try
             {
-                var pictures = await _context.PortfolioPictures.Where(x => x.PortfolioId == id).OrderBy(x => x.SortIndex).ToListAsync();
+                var picturesQuery = _context.PortfolioPictures.Where(x => x.PortfolioId == id);
+                if(!includeDraft)
+                {
+                    picturesQuery = picturesQuery.Where(x => x.SortIndex >= 0);
+                }
+
+                var pictures = await picturesQuery.OrderBy(x => x.SortIndex).ToListAsync();
                 return Result.Success(_mapper.Map<IEnumerable<PortfolioPicture>>(pictures));
             }
             catch (Exception e)

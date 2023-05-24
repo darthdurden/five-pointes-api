@@ -65,7 +65,7 @@ namespace FivePointes.Api.Controllers.CSP
         [ProducesResponseType(200)]
         public async Task<ActionResult<List<PictureDto>>> GetPortfolioPictures(int id)
         {
-            var portfolioPicturesResult = await _service.GetPicturesAsync(id);
+            var portfolioPicturesResult = await _service.GetPicturesAsync(id, false);
             if (!portfolioPicturesResult.IsSuccessful())
             {
                 return new ErrorActionResult(portfolioPicturesResult);
@@ -165,13 +165,14 @@ namespace FivePointes.Api.Controllers.CSP
         [ProducesResponseType(200)]
         public async Task<ActionResult<List<PictureDto>>> PatchPortfolioPictures(int id, IList<PictureDto> pictures)
         {
-            var getResult = await _service.GetPicturesAsync(id);
+            var getResult = await _service.GetPicturesAsync(id, true);
             if (!getResult.IsSuccessful())
             {
                 return new ErrorActionResult(getResult);
             }
 
             var updates = new Dictionary<long, PortfolioPicture>();
+            var deletions = new List<long>();
             for (var i = 0; i < pictures.Count; i++)
             {
                 var picture = pictures[i];
@@ -179,7 +180,19 @@ namespace FivePointes.Api.Controllers.CSP
                 if (existingPic != null)
                 {
                     updates[picture.Id] = _mapper.Map(picture, existingPic, opt => opt.AfterMap((src, dest) => { dest.SortIndex = i; }));
+                } else
+                {
+                    deletions.Add(picture.Id);
                 }
+            }
+
+            // Delete any that aren't in the new sort order
+            var newIds = pictures.Select(x => (int)x.Id);
+            var oldIds = getResult.Value.Select(x => x.Id);
+
+            foreach(var deletePicId in oldIds.Except(newIds))
+            {
+                await _service.DeletePictureAsync(id, deletePicId);
             }
 
             var updateResult = await _service.UpdatePicturesAsync(id, updates.Values);
