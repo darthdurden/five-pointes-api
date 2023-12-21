@@ -38,5 +38,12 @@ namespace FivePointes.Api.Controllers
                 AccessToken = loginResult.Value.AccessToken
             };
         }
+
+        [HttpGet]
+        [ProducesResponseType(200)]
+        public Task Check()
+        {
+            return Task.CompletedTask;
+        }
     }
 }

@@ -1,4 +1,3 @@
-using AutoMapper;
 using FivePointes.Api.Adapters;
 using FivePointes.Api.Configuration;
 using FivePointes.Data;
@@ -25,6 +24,7 @@ using NodaTime.Serialization.SystemTextJson;
 using System.Text.Json.Serialization;
 using Stripe;
 using FivePointes.Logic.Configuration;
+using System;
 
 namespace FivePointes.Api
 {
@@ -143,6 +143,8 @@ namespace FivePointes.Api
 
             services.AddAutoMapper(typeof(Startup));
 
+            var serverVersion = new MariaDbServerVersion(new Version(10, 11, 3));
+
             services
                 .Configure<MysqlOptions>(options => {
                     Configuration.Bind("Mysql", options);
@@ -150,7 +152,7 @@ namespace FivePointes.Api
                 .AddDbContext<FivePointesDbContext>(options => {
                     var mysqlOptions = new MysqlOptions();
                     Configuration.Bind("Mysql", mysqlOptions);
-                    options.UseMySQL(mysqlOptions.ConnectionString);
+                    options.UseMySql(mysqlOptions.ConnectionString, serverVersion);
                 });
         }
 
