@@ -42,6 +42,10 @@ namespace FivePointes.Logic.Services
                     return Result.Error<Transaction>(HttpStatusCode.BadRequest, $"Category with id {transaction.Category.Id} does not exist.");
                 }
             }
+            else if(transaction.Account == null)
+            {
+                return Result.Error<Transaction>(HttpStatusCode.BadRequest, "Cannot create a transaction without a category or account.");
+            }
 
             if(transaction.Account == null)
             {
